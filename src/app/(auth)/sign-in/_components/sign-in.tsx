@@ -19,8 +19,6 @@ import {
 import { authClient } from "@/lib/auth-client";
 import { getCallbackURL } from "@/lib/shared";
 import { cn } from "@/lib/utils";
-import {headers} from "next/headers";
-import {auth} from "@/lib/auth";
 
 export default function SignIn() {
     const [isMounted, setIsMounted] = useState(false);

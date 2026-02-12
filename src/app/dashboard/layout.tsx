@@ -57,12 +57,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                         */}
                     <Suspense fallback={
                         <div className="space-y-4">
-                            <Skeleton className="h-8 w-48 bg-muted animate-pulse rounded" />
-                            <Skeleton className="h-64 w-full bg-muted animate-pulse rounded" />
+                            <Skeleton className="h-8 w-48" />
+                            <Skeleton className="h-64 w-full" />
                         </div>
                     }>
                         {children}
-                    </Suspense></main>
+                    </Suspense>
+                </main>
             </SidebarInset>
         </SidebarProvider>
     )

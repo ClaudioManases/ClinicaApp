@@ -14,16 +14,20 @@ import {
 	FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { useImagePreview } from "@/hooks/use-image-preview";
 import { authClient } from "@/lib/auth-client";
 import { convertImageToBase64 } from "@/lib/utils";
+import { isValidPhoneNumber } from "react-phone-number-input";
+import { useRouter } from "next/navigation";
 
 const signUpSchema = z
 	.object({
 		firstName: z.string().min(1, "First name is required."),
 		lastName: z.string().min(1, "Last name is required."),
 		email: z.string().email("Please enter a valid email address."),
-        phone: z.string().max(12,"Password is required, with 12 digits."),
+        phone: z.string()
+            .refine(isValidPhoneNumber, { message: "Invalid phone number" }),
 		password: z.string().min(8, "Password must be at least 8 characters."),
 		passwordConfirmation: z.string().min(1, "Please confirm your password."),
 	})
@@ -41,9 +45,10 @@ interface SignUpFormProps {
 
 export function SignUpForm({
 	onSuccess,
-	callbackURL = "/dashboard",
+	callbackURL,
 }: SignUpFormProps) {
 	const [loading, startTransition] = useTransition();
+    const router = useRouter();
 	const { image, imagePreview, handleImageChange, clearImage } =
 		useImagePreview();
 
@@ -53,7 +58,7 @@ export function SignUpForm({
 			firstName: "",
 			lastName: "",
 			email: "",
-            phone:"",
+            phone: "",
 			password: "",
 			passwordConfirmation: "",
 		},
@@ -66,13 +71,31 @@ export function SignUpForm({
 				password: data.password,
 				name: `${data.firstName} ${data.lastName}`,
 				image: image ? await convertImageToBase64(image) : "",
+                // @ts-expect-error - Phone is not in the default type but can be added via additionalFields
+                phone: data.phone,
 				callbackURL,
 				fetchOptions: {
 					onError: (ctx) => {
 						toast.error(ctx.error.message);
 					},
-					onSuccess: async () => {
-						toast.success("Successfully signed up");
+					onSuccess: async (ctx) => {
+						toast.success("Conta criada com sucesso!");
+                        
+                        // Tenta obter a role da resposta, se não existir, assume 'doctor' (padrão)
+                        const role = ctx.data?.user?.role || "doctor";
+                        
+                        // Lógica de redirecionamento baseada na role
+                        let redirectPath = "/doctor/dashboard";
+                        if (role === "admin") redirectPath = "/admin/dashboard";
+                        if (role === "superadmin") redirectPath = "/super-admin/dashboard";
+
+                        // Se houver um callbackURL específico (que não seja o padrão), usa-o
+                    {/*
+                        if (callbackURL && callbackURL !== "/dashboard") {
+                            redirectPath = callbackURL;
+                        }
+                    */}
+                        router.push(redirectPath);
 						onSuccess?.();
 					},
 				},
@@ -81,7 +104,7 @@ export function SignUpForm({
 	};
 
 	return (
-		<form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-2">
+		<form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
 			<FieldGroup>
 				<div className="grid grid-cols-2 gap-4">
 					<Controller
@@ -141,6 +164,22 @@ export function SignUpForm({
 						</Field>
 					)}
 				/>
+                <Controller
+                    name="phone"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                            <FieldLabel htmlFor="sign-up-phone">Phone Number</FieldLabel>
+                            <PhoneInput
+                                {...field}
+                                id="sign-up-phone"
+                                placeholder="Enter phone number"
+                                defaultCountry="AO"
+                            />
+                            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                    )}
+                />
 				<div className="grid grid-cols-2 gap-4">
 					<Controller
 						name="password"

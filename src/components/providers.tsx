@@ -6,6 +6,7 @@ import { getQueryClient } from "@/data/query-client";
 import { ThemeProvider } from "./theme-provider";
 
 import { Toaster } from "./ui/sonner";
+import {SidebarProvider} from "@/components/ui/sidebar";
 
 type Props = {
 	children: React.ReactNode;
@@ -24,8 +25,7 @@ const Providers = ({ children }: Props) => {
 					position="bottom"
 				/>
 				<Toaster richColors closeButton position="top-right" />
-
-                {children}
+                    {children}
 			</QueryClientProvider>
 		</ThemeProvider>
 	);

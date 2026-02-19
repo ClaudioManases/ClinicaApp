@@ -8,7 +8,7 @@ async function createSuperAdmin() {
         const ctx = await auth.$context;
 
         const superadminEmail = "superadmin@example.com";
-        const superadminPassword = "superadmin";
+        const superadminPassword = "123456789";
         const superadminName = "SUPER_ADMINISTRATOR";
         const superadminNumber = "123456789";
 
@@ -114,7 +114,7 @@ async function createDoctor() {
                 email: superadminEmail,
                 name: superadminName,
                 emailVerified: true,
-                role: "user",
+                role: "doctor",
                 phone: superadminNumber,
                 profileType: "doctor",
             });
@@ -147,7 +147,7 @@ async function createProfileForUser(userId: string, profileType: string) {
     try {
         switch (profileType) {
 
-            case "user":
+            case "doctor":
                 await prisma.doctorProfile.create({
                     data: {
                         userId: userId,

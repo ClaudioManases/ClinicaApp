@@ -1,52 +1,40 @@
-"use client";
-
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
-import { toast } from "sonner";
-import SignIn from "@/app/(auth)/sign-in/_components/sign-in";
-import { SignUp } from "@/app/(auth)/sign-in/_components/sign-up";
-import { Tabs } from "@/components/ui/tabs2";
-import { authClient } from "@/lib/auth-client";
+// src/app/(auth)/sign-in/page.tsx
 import { getCallbackURL } from "@/lib/shared";
+import SignIn from "@/app/(auth)/sign-in/_components/sign-in";
+import Link from "next/link";
+import { AuthCarousel } from "@/app/(auth)/_components/auth-carousel";
 
-export default function Page() {
-	const router = useRouter();
-	const params = useSearchParams();
+interface PageProps {
+    searchParams: Promise<{
+        callbackUrl?: string;
+        [key: string]: string | string[] | undefined;
+    }>;
+}
 
-	useEffect(() => {
-		authClient.oneTap({
-			fetchOptions: {
-				onError: ({ error }) => {
-					toast.error(error.message || "An error occurred");
-				},
-				onSuccess: () => {
-					toast.success("Successfully signed in");
-					router.push(getCallbackURL(params));
-				},
-			},
-		});
-	}, []);
+export default async function SignInPage({ searchParams }: PageProps) {
+    // Aguardar a promise searchParams
+    const resolvedSearchParams = await searchParams;
+    
+    const params = new URLSearchParams();
+    if (resolvedSearchParams.callbackUrl) {
+        params.set("callbackUrl", resolvedSearchParams.callbackUrl);
+    }
+    const safeCallbackURL = getCallbackURL(params as any);
 
-	return (
-		<div className="w-full">
-			<div className="flex items-center flex-col justify-center w-full md:py-10">
-				<div className="w-full max-w-md">
-					<Tabs
-						tabs={[
-							{
-								title: "Sign In",
-								value: "sign-in",
-								content: <SignIn />,
-							},
-							{
-								title: "Sign Up",
-								value: "sign-up",
-								content: <SignUp />,
-							},
-						]}
-					/>
-				</div>
-			</div>
-		</div>
-	);
+    return (
+        <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
+            <div className="flex items-center justify-center py-12">
+                <div className="mx-auto w-full max-w-sm px-4">
+                    <SignIn callbackURL={safeCallbackURL} />
+                    <div className="mt-4 text-center text-sm">
+                        Não tem uma conta?{" "}
+                        <Link href="/sign-up" className="underline hover:text-primary">
+                            Registe-se
+                        </Link>
+                    </div>
+                </div>
+            </div>
+            <AuthCarousel />
+        </div>
+    );
 }

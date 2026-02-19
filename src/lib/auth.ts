@@ -105,6 +105,11 @@ const authOptions = {
 	plugins: [
 		organization({
             ac,
+            roles:{
+                admin,
+                superadmin,
+                doctor
+            },
 
 
 			async sendInvitationEmail(data) {

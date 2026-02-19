@@ -19,6 +19,8 @@ import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { authClient } from "@/lib/auth-client";
 import { LastUsedIndicator } from "../last-used-indicator";
+import {useRouter, useSearchParams} from "next/navigation";
+import {getCallbackURL} from "@/lib/shared";
 
 const signInSchema = z.object({
     email: z.email("Please enter a valid email address."),
@@ -29,18 +31,19 @@ const signInSchema = z.object({
 type SignInFormValues = z.infer<typeof signInSchema>;
 
 interface SignInFormProps {
-    onSuccess?: () => void;
-    callbackURL?: string;
+    callbackURL: string; // Já processado e seguro
     showPasswordToggle?: boolean;
 }
 
 export function SignInForm({
-                               onSuccess,
-                               callbackURL = "/dashboard",
+                               callbackURL, // ← Recebe do componente pai (já processado)
                                showPasswordToggle = false,
                            }: SignInFormProps) {
     const [loading, startTransition] = useTransition();
     const [isMounted, setIsMounted] = useState(false);
+    const router = useRouter();
+    const params = useSearchParams(); // ← Para ter acesso aos params originais
+
 
     useEffect(() => {
         setIsMounted(true);
@@ -62,12 +65,36 @@ export function SignInForm({
                     email: data.email,
                     password: data.password,
                     rememberMe: data.rememberMe,
-                    callbackURL,
+                    callbackURL, // ← Passa o URL já processado
+
                 },
                 {
-                    onSuccess() {
+                    onSuccess(ctx) {
                         toast.success("Successfully signed in");
-                        onSuccess?.();
+
+                        // Pega a role do usuário do contexto
+                        const role = ctx?.data?.user?.role;
+
+                        toast.info(`Bem-vindo! Role: ${role}`);
+                        console.log("contexto", ctx);
+
+                        // Redireciona baseado na role
+                        switch (role) {
+                            case "superadmin":
+                                router.replace("/super-admin/dashboard");
+                                break;
+                            case "admin":
+                                router.replace("/admin/dashboard");
+                                break;
+                            case "doctor":
+                                // Se tinha callbackUrl, usa ele (validado pelo shared)
+                                // Senão, vai para /doctor/dashboard
+                                const finalURL = callbackURL === "/dashboard" ? "/doctor/dashboard" : callbackURL;
+                                router.replace(finalURL);
+                                break;
+                            default:
+                                router.replace("/doctor/dashboard");
+                        }
                     },
                     onError(context) {
                         toast.error(context.error.message);

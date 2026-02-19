@@ -4,7 +4,7 @@ import HomePage from "@/app/homePage";
 
 export default function Page() {
 
-	return (
+    return (
         <div className="min-h-[calc(100vh-3.5rem)] mt-14 w-full relative">
             {/* Site Header */}
             <Header />
@@ -17,6 +17,7 @@ export default function Page() {
             {/* Content */}
             <div className="relative z-10  w-full p-6 mx-auto">
                <HomePage/>
+
             </div>
         </div>
 
